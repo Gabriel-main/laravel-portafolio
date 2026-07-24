@@ -2,7 +2,6 @@
 .gitignore
 .env
 .env.backup
-.env.docker
 .env.production
 .dockerignore
 docker-compose.yml

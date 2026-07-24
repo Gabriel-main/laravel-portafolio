@@ -47,7 +47,7 @@ setup:
 	docker compose exec php php artisan key:generate
 	docker compose exec php php artisan migrate --force
 	docker compose exec php php artisan db:seed
-	docker compose exec php npm run build
+	docker compose exec php pnpm run build
 
 # Open MySQL in terminal
 mysql:

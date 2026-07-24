@@ -22,10 +22,11 @@ RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Node.js (for Vite)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+# Node.js 22 LTS + pnpm
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
-    && npm install -g npm@latest
+    && corepack enable \
+    && corepack prepare pnpm@latest --activate
 
 # Working directory
 WORKDIR /var/www
@@ -38,7 +39,7 @@ COPY . /var/www
 
 # Install dependencies and build
 RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && npm ci && npm run build \
+    && pnpm install && pnpm run build \
     && chown -R www:www /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
