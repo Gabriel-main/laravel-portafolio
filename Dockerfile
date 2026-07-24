@@ -22,28 +22,30 @@ RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Node.js 22 LTS + pnpm
+# Node.js y pnpm (en lugar de npm)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
-    && corepack enable \
-    && corepack prepare pnpm@latest --activate
+    && npm install -g pnpm
 
-# Working directory
-WORKDIR /var/www
-
-# Create user and set permissions
+# Crear usuario primero
 RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
 
-# Copy application
+WORKDIR /var/www
+
+# Copiar archivos como root
 COPY . /var/www
 
-# Install dependencies and build
+# Instalar dependencias como root (es más rápido)
 RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && pnpm install && pnpm run build \
-    && chown -R www:www /var/www \
+    && pnpm install \
+    && pnpm run build
+
+# Cambiar propietario después de instalar
+RUN chown -R www:www /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
+# Cambiar a usuario no-root
 USER www
 
 EXPOSE 9000

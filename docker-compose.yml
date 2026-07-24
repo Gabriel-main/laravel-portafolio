@@ -1,5 +1,4 @@
 services:
-
   nginx:
     image: nginx:alpine
     container_name: portafilo-nginx
@@ -21,8 +20,7 @@ services:
     volumes:
       - .:/var/www
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql   # <- sin condición
     networks:
       - portafilo-network
 
@@ -30,7 +28,7 @@ services:
     image: mysql:8.0
     container_name: portafilo-mysql
     ports:
-      - "3306:3306"
+      - "3308:3306"
     env_file:
       - .env
     environment:
@@ -40,11 +38,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - portafilo-mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - portafilo-network
 
