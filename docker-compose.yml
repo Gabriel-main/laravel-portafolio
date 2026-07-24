@@ -1,0 +1,56 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: portafilo-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - php
+    networks:
+      - portafilo-network
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portafilo-php
+    volumes:
+      - .:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - portafilo-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: portafilo-mysql
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - portafilo-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - portafilo-network
+
+volumes:
+  portafilo-mysql-data:
+
+networks:
+  portafilo-network:
+    driver: bridge
